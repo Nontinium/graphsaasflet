@@ -18,8 +18,10 @@ def main(page: ft.Page):
         global dataframe
         if e.files:
             print("Files picked:", e.files)
-            file_path = e.files[0].path
+            file = e.files[0]
+            file_path = file.path
             print("File path:", file_path)
+
             file_extension = os.path.splitext(file_path)[1].lower()
             
             if file_extension == '.csv':
