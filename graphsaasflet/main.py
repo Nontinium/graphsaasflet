@@ -42,18 +42,37 @@ def main(page: ft.Page):
     def type_of_graph_rendered(e):
         global fig
         if dataframe is not None:
+            fig, ax = plt.subplots()
+
             if type_of_graph.value == "line plot":
-                fig, ax = plt.subplots()
                 sns.lineplot(data= dataframe, x = x_axis.value, y = y_axis.value, ax = ax)
-                graph_container.content = MatplotlibChart(fig, expand=True)
-                page.update()
+            elif type_of_graph.value == "scatter plot":
+                sns.scatterplot(data= dataframe, x = x_axis.value, y = y_axis.value, ax = ax)
+            elif type_of_graph.value == "bar plot":
+                sns.barplot(data= dataframe, x = x_axis.value, y = y_axis.value, ax = ax)
+            plt.xlabel(x_axis_label.value)
+            plt.ylabel(y_axis_label.value)
+            graph_container.content = MatplotlibChart(fig, expand=True)
+            page.update()
             
 
+    def save_file(e):
+        if fig is not None:
+            file_dialog.save_file(
+                allowed_extensions=["png", "svg", "pdf"],
+                file_name="graph.png"
+            )
+
+    def file_saved(e: ft.FilePickerResultEvent):
+        if e.path:
+            fig.savefig(e.path)
+            print(f"Graph saved to {e.path}")
 
 
+    file_dialog = ft.FilePicker(on_result=file_saved)
 
     pick_files_dialog = ft.FilePicker(on_result=files_are_picked)
-    page.overlay.append(pick_files_dialog)
+    page.overlay.extend([pick_files_dialog, file_dialog])
     
     button = ft.IconButton(icon=ft.icons.ADD, on_click=pickfiles)
 
@@ -74,13 +93,15 @@ def main(page: ft.Page):
     x_axis = ft.Dropdown(label =  "X axis",options=[], on_change= type_of_graph_rendered)
     y_axis = ft.Dropdown(label =  "Y axis",options=[], on_change= type_of_graph_rendered)
 
-    x_axis_label = ft.TextField(label="X axis label", hint_text="Please enter the name of X axis")
-    y_axis_label = ft.TextField(label="Y axis label", hint_text="Please enter the name of Y axis")
+    x_axis_label = ft.TextField(label="X axis label", hint_text="Please enter the name of X axis", on_change = type_of_graph_rendered)
+    y_axis_label = ft.TextField(label="Y axis label", hint_text="Please enter the name of Y axis" , on_change = type_of_graph_rendered)
 
 
     graph_container = ft.Container(expand=True)
 
-    page.add(ft.Column(controls=[button, type_of_graph, x_axis, y_axis, graph_container], expand= True, spacing=10))
+    save_button = ft.IconButton(icon=ft.icons.ADD, on_click=save_file)
+
+    page.add(ft.Column(controls=[button, type_of_graph, x_axis, y_axis, x_axis_label, y_axis_label,graph_container, save_button], expand= True, spacing=10))
 
 
 ft.app(main)
